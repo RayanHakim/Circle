@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>CIRCLE</title>
+
+    <style>
+
+        /* =========================================
+           RESET
+        ========================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+
+            overflow: hidden;
+
+            background:
+                radial-gradient(
+                    circle at center,
+                    #0d0d12 0%,
+                    #050509 45%,
+                    #010103 100%
+                );
+
+            color: white;
+
+            font-family:
+                Arial,
+                sans-serif;
+        }
+
+
+        /* =========================================
+           CANVAS
+        ========================================= */
+
+        #canvas {
+            position: fixed;
+
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            z-index: 1;
+
+            pointer-events: none;
+        }
+
+
+        /* =========================================
+           STARS
+        ========================================= */
+
+        #stars {
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 0;
+
+            pointer-events: none;
+        }
+
+
+        .star {
+            position: absolute;
+
+            width: 2px;
+            height: 2px;
+
+            border-radius: 50%;
+
+            background: rgba(255,255,255,0.7);
+
+            box-shadow:
+                0 0 6px rgba(255,255,255,0.4);
+
+            animation:
+                pulse 3s ease-in-out infinite;
+        }
+
+
+        @keyframes pulse {
+
+            0% {
+                opacity: 0.15;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 0.15;
+            }
+
+        }
+
+
+        /* =========================================
+           INTRO
+        ========================================= */
+
+        #intro {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 10;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            text-align: center;
+
+            transition:
+                opacity 1s ease,
+                visibility 1s ease;
+        }
+
+
+        #intro.hidden {
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            pointer-events: none;
+        }
+
+
+        .intro-content {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            width: 90%;
+
+            max-width: 600px;
+        }
+
+
+        .eyebrow {
+
+            margin-bottom: 20px;
+
+            font-size: 10px;
+
+            letter-spacing: 0.4em;
+
+            color:
+                rgba(255,255,255,0.4);
+        }
+
+
+        h1 {
+
+            font-family:
+                Georgia,
+                serif;
+
+            font-size:
+                clamp(70px, 14vw, 150px);
+
+            font-weight: 400;
+
+            letter-spacing: 0.12em;
+
+            margin-left: 0.12em;
+
+            color:
+                rgba(255,255,255,0.95);
+
+            text-shadow:
+                0 0 30px
+                rgba(255,255,255,0.08);
+        }
+
+
+        .description {
+
+            margin-top: 30px;
+
+            font-size: 13px;
+
+            line-height: 1.7;
+
+            color:
+                rgba(255,255,255,0.42);
+        }
+
+
+        /* =========================================
+           BUTTON
+        ========================================= */
+
+        button {
+
+            margin-top: 35px;
+
+            padding:
+                12px 30px;
+
+            min-width: 120px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.22);
+
+            background:
+                rgba(255,255,255,0.025);
+
+            color:
+                rgba(255,255,255,0.85);
+
+            font-size: 11px;
+
+            letter-spacing: 0.2em;
+
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            transition:
+                all 0.3s ease;
+        }
+
+
+        button:hover {
+
+            border-color:
+                rgba(255,255,255,0.55);
+
+            background:
+                rgba(255,255,255,0.06);
+
+            transform:
+                translateY(-2px);
+
+        }
+
+
+        /* =========================================
+           STORY
+        ========================================= */
+
+        #story {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 20;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            pointer-events: none;
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            transition:
+                opacity 0.8s ease;
+        }
+
+
+        #story.show {
+
+            opacity: 1;
+
+            visibility: visible;
+        }
+
+
+        #storyText {
+
+            width: 90%;
+
+            max-width: 650px;
+
+            text-align: center;
+
+            font-size:
+                clamp(18px, 2.5vw, 27px);
+
+            line-height: 1.7;
+
+            font-weight: 300;
+
+            opacity: 0;
+
+            transform:
+                translateY(8px);
+
+            transition:
+                opacity 0.6s ease,
+                transform 0.6s ease,
+                text-shadow 0.6s ease;
+        }
+
+
+        #storyText.show {
+
+            opacity: 1;
+
+            transform:
+                translateY(0);
+        }
+
+
+        /* =========================================
+           BLUE TEXT
+        ========================================= */
+
+        #storyText.blue {
+
+            color:
+                rgba(245,249,255,0.95);
+
+            text-shadow:
+
+                0 0 8px
+                rgba(80,140,255,0.65),
+
+                0 0 30px
+                rgba(60,120,255,0.25);
+        }
+
+
+        /* =========================================
+           RED TEXT
+        ========================================= */
+
+        #storyText.red {
+
+            color:
+                rgba(255,248,248,0.95);
+
+            text-shadow:
+
+                0 0 8px
+                rgba(255,70,90,0.7),
+
+                0 0 30px
+                rgba(255,50,70,0.25);
+        }
+
+
+        /* =========================================
+           ENDING
+        ========================================= */
+
+        #ending {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 30;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: flex-end;
+
+            padding-bottom: 8vh;
+
+            pointer-events: none;
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            transition:
+                opacity 1s ease;
+        }
+
+
+        #ending.show {
+
+            opacity: 1;
+
+            visibility: visible;
+        }
+
+
+        .ending-content {
+
+            text-align: center;
+        }
+
+
+        #endingTitle {
+
+            font-family:
+                Georgia,
+                serif;
+
+            font-size:
+                clamp(45px, 10vw, 100px);
+
+            font-weight: 400;
+
+            letter-spacing: 0.15em;
+
+            margin-left: 0.15em;
+
+            color:
+                rgba(255,255,255,0.95);
+
+            opacity: 0;
+
+            transform:
+                translateY(10px);
+
+            transition:
+                opacity 1s ease,
+                transform 1s ease;
+        }
+
+
+        #endingTitle.show {
+
+            opacity: 1;
+
+            transform:
+                translateY(0);
+        }
+
+
+        #restart {
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition:
+                opacity 1s ease;
+        }
+
+
+        #restart.show {
+
+            opacity: 1;
+
+            pointer-events: auto;
+        }
+
+
+        /* =========================================
+           MOBILE
+        ========================================= */
+
+        @media (max-width: 600px) {
+
+            .description {
+
+                font-size: 12px;
+
+            }
+
+
+            #storyText {
+
+                width: 82%;
+
+                font-size: 18px;
+
+            }
+
+
+            #ending {
+
+                padding-bottom: 7vh;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================
+         STARS
+    ========================================== -->
+
+    <div id="stars"></div>
+
+
+    <!-- =========================================
+         CANVAS
+    ========================================== -->
+
+    <canvas id="canvas"></canvas>
+
+
+    <!-- =========================================
+         INTRO
+    ========================================== -->
+
+    <div id="intro">
+
+        <div class="intro-content">
+
+            <div class="eyebrow">
+                AN INTERACTIVE STORY
+            </div>
+
+            <h1>
+                CIRCLE
+            </h1>
+
+            <div class="description">
+                Tentang ingin masuk ke sebuah lingkaran.
+            </div>
+
+            <button id="startButton">
+                Mulai
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         STORY
+    ========================================== -->
+
+    <div id="story">
+
+        <div id="storyText"></div>
+
+    </div>
+
+
+    <!-- =========================================
+         ENDING
+    ========================================== -->
+
+    <div id="ending">
+
+        <div class="ending-content">
+
+            <div id="endingTitle">
+                CIRCLE
+            </div>
+
+            <button id="restart">
+                Ulangi
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        /* ==================================================
+           CIRCLE
+        ================================================== */
+
+        const canvas =
+            document.getElementById("canvas");
+
+        const ctx =
+            canvas.getContext("2d");
+
+
+        let W = 0;
+        let H = 0;
+
+        let dpr = 1;
+
+
+        function resizeCanvas() {
+
+            W =
+                window.innerWidth;
+
+            H =
+                window.innerHeight;
+
+
+            dpr =
+                Math.min(
+                    window.devicePixelRatio || 1,
+                    2
+                );
+
+
+            canvas.width =
+                W * dpr;
+
+            canvas.height =
+                H * dpr;
+
+
+            canvas.style.width =
+                W + "px";
+
+            canvas.style.height =
+                H + "px";
+
+
+            ctx.setTransform(
+                dpr,
+                0,
+                0,
+                dpr,
+                0,
+                0
+            );
+
+        }
+
+
+        window.addEventListener(
+            "resize",
+            resizeCanvas
+        );
+
+
+        resizeCanvas();
+
+
+        /* ==================================================
+           STARS
+        ================================================== */
+
+        const stars =
+            document.getElementById("stars");
+
+
+        for (
+            let i = 0;
+            i < 100;
+            i++
+        ) {
+
+            const star =
+                document.createElement("div");
+
+
+            star.className =
+                "star";
+
+
+            star.style.left =
+                Math.random() * 100 + "%";
+
+
+            star.style.top =
+                Math.random() * 100 + "%";
+
+
+            const size =
+                Math.random() > 0.9
+                    ? 3
+                    : 2;
+
+
+            star.style.width =
+                size + "px";
+
+
+            star.style.height =
+                size + "px";
+
+
+            star.style.animationDuration =
+                (2 + Math.random() * 5)
+                + "s";
+
+
+            star.style.animationDelay =
+                Math.random() * 5
+                + "s";
+
+
+            stars.appendChild(star);
+
+        }
+
+
+        /* ==================================================
+           BLUE DOT
+        ================================================== */
+
+        const blue = {
+
+            x: 0,
+
+            y: 0,
+
+            radius: 5,
+
+            opacity: 1,
+
+            pulse: 0
+
+        };
+
+
+        /* ==================================================
+           RED DOTS
+        ================================================== */
+
+        const RED_COUNT = 10;
+
+        const reds = [];
+
+
+        for (
+            let i = 0;
+            i < RED_COUNT;
+            i++
+        ) {
+
+            reds.push({
+
+                angle:
+                    (Math.PI * 2 / RED_COUNT)
+                    * i,
+
+                radius:
+                    80 +
+                    Math.random() * 8,
+
+                x: 0,
+
+                y: 0,
+
+                size:
+                    4 +
+                    Math.random() * 2,
+
+                opacity: 1,
+
+                scale: 1,
+
+                noise:
+                    Math.random() * 10
+
+            });
+
+        }
+
+
+        /* ==================================================
+           BLUE RING
+        ================================================== */
+
+        const blueRing = [];
+
+
+        for (
+            let i = 0;
+            i < 8;
+            i++
+        ) {
+
+            blueRing.push({
+
+                angle:
+                    (Math.PI * 2 / 8)
+                    * i,
+
+                radius: 0,
+
+                targetRadius:
+                    48 +
+                    Math.random() * 8,
+
+                opacity: 0,
+
+                size:
+                    3 +
+                    Math.random() * 2
+
+            });
+
+        }
+
+
+        /* ==================================================
+           STATE
+        ================================================== */
+
+        let state =
+            "idle";
+
+
+        let stateTime = 0;
+
+        let lastTime = 0;
+
+
+        let groupX = 0;
+
+        let groupY = 0;
+
+        let speed = 0;
+
+
+        /* ==================================================
+           RESET
+        ================================================== */
+
+        function resetScene() {
+
+            blue.x =
+                W / 2;
+
+            blue.y =
+                H / 2;
+
+            blue.opacity =
+                1;
+
+
+            groupX =
+                W / 2;
+
+            groupY =
+                H / 2;
+
+
+            state =
+                "together";
+
+            stateTime =
+                0;
+
+            speed =
+                0;
+
+
+            reds.forEach(
+                (red, i) => {
+
+                    red.angle =
+                        (Math.PI * 2 / RED_COUNT)
+                        * i;
+
+                    red.radius =
+                        80 +
+                        Math.random() * 8;
+
+                    red.opacity =
+                        1;
+
+                    red.scale =
+                        1;
+
+                }
+            );
+
+
+            blueRing.forEach(
+                point => {
+
+                    point.radius = 0;
+
+                    point.opacity = 0;
+
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           DRAW DOT
+        ================================================== */
+
+        function drawDot(
+            x,
+            y,
+            radius,
+            color,
+            opacity
+        ) {
+
+            if (opacity <= 0)
+                return;
+
+
+            /* Glow */
+
+            const gradient =
+                ctx.createRadialGradient(
+                    x,
+                    y,
+                    0,
+                    x,
+                    y,
+                    radius * 6
+                );
+
+
+            gradient.addColorStop(
+                0,
+                color
+            );
+
+
+            gradient.addColorStop(
+                0.2,
+                color
+            );
+
+
+            gradient.addColorStop(
+                1,
+                "rgba(0,0,0,0)"
+            );
+
+
+            ctx.globalAlpha =
+                opacity * 0.35;
+
+
+            ctx.beginPath();
+
+            ctx.fillStyle =
+                gradient;
+
+            ctx.arc(
+                x,
+                y,
+                radius * 6,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+
+            /* Core */
+
+            ctx.globalAlpha =
+                opacity;
+
+
+            ctx.shadowBlur =
+                18;
+
+            ctx.shadowColor =
+                color;
+
+
+            ctx.beginPath();
+
+            ctx.fillStyle =
+                color;
+
+            ctx.arc(
+                x,
+                y,
+                radius,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+
+            ctx.shadowBlur = 0;
+
+            ctx.globalAlpha = 1;
+
+        }
+
+
+        /* ==================================================
+           UPDATE
+        ================================================== */
+
+        function update(dt) {
+
+            blue.x =
+                W / 2;
+
+            blue.y =
+                H / 2;
+
+
+            blue.pulse +=
+                dt * 0.002;
+
+
+            /* ------------------------------------------
+               TOGETHER
+            ------------------------------------------ */
+
+            if (state === "together") {
+
+                reds.forEach(
+                    red => {
+
+                        red.angle +=
+                            dt * 0.00012;
+
+
+                        red.x =
+                            blue.x +
+                            Math.cos(red.angle)
+                            * red.radius;
+
+
+                        red.y =
+                            blue.y +
+                            Math.sin(red.angle)
+                            * red.radius;
+
+                    }
+                );
+
+            }
+
+
+            /* ------------------------------------------
+               BREAKING
+            ------------------------------------------ */
+
+            else if (
+                state === "breaking"
+            ) {
+
+                stateTime += dt;
+
+
+                const progress =
+                    Math.min(
+                        stateTime / 1800,
+                        1
+                    );
+
+
+                const eased =
+                    1 -
+                    Math.pow(
+                        1 - progress,
+                        3
+                    );
+
+
+                reds.forEach(
+                    red => {
+
+                        const angle =
+                            red.angle +
+                            Math.sin(
+                                red.noise +
+                                stateTime * 0.002
+                            ) * 0.3;
+
+
+                        const radius =
+                            80 +
+                            eased * 100;
+
+
+                        red.x =
+                            blue.x +
+                            Math.cos(angle)
+                            * radius;
+
+
+                        red.y =
+                            blue.y +
+                            Math.sin(angle)
+                            * radius;
+
+
+                        red.x +=
+                            Math.sin(
+                                stateTime * 0.004 +
+                                red.noise
+                            ) *
+                            12 *
+                            eased;
+
+
+                        red.y +=
+                            Math.cos(
+                                stateTime * 0.003 +
+                                red.noise
+                            ) *
+                            12 *
+                            eased;
+
+                    }
+                );
+
+
+                if (progress >= 1) {
+
+                    state =
+                        "regrouping";
+
+                    stateTime = 0;
+
+                    groupX =
+                        W / 2 + 210;
+
+                    groupY =
+                        H / 2;
+
+                }
+
+            }
+
+
+            /* ------------------------------------------
+               REGROUPING
+            ------------------------------------------ */
+
+            else if (
+                state === "regrouping"
+            ) {
+
+                stateTime += dt;
+
+
+                const progress =
+                    Math.min(
+                        stateTime / 1600,
+                        1
+                    );
+
+
+                const eased =
+                    1 -
+                    Math.pow(
+                        1 - progress,
+                        3
+                    );
+
+
+                groupX +=
+                    (
+                        W / 2 +
+                        260 -
+                        groupX
+                    ) *
+                    0.045;
+
+
+                groupY +=
+                    (
+                        H / 2 -
+                        groupY
+                    ) *
+                    0.045;
+
+
+                reds.forEach(
+                    (red, i) => {
+
+                        const angle =
+                            (Math.PI * 2 / RED_COUNT)
+                            * i;
+
+
+                        const radius =
+                            120 -
+                            (120 - 40)
+                            * eased;
+
+
+                        red.x =
+                            groupX +
+                            Math.cos(angle)
+                            * radius;
+
+
+                        red.y =
+                            groupY +
+                            Math.sin(angle)
+                            * radius;
+
+                    }
+                );
+
+
+                if (progress >= 1) {
+
+                    state =
+                        "running";
+
+                    stateTime = 0;
+
+                    speed = 0.05;
+
+                }
+
+            }
+
+
+            /* ------------------------------------------
+               RUNNING
+            ------------------------------------------ */
+
+            else if (
+                state === "running"
+            ) {
+
+                stateTime += dt;
+
+
+                speed +=
+                    dt * 0.00004;
+
+
+                speed =
+                    Math.min(
+                        speed,
+                        1.1
+                    );
+
+
+                groupX +=
+                    speed * dt;
+
+
+                groupY +=
+                    Math.sin(
+                        stateTime * 0.0015
+                    ) *
+                    dt *
+                    0.04;
+
+
+                reds.forEach(
+                    (red, i) => {
+
+                        const angle =
+                            (Math.PI * 2 / RED_COUNT)
+                            * i +
+                            stateTime * 0.001;
+
+
+                        const radius =
+                            38 +
+                            Math.sin(
+                                stateTime * 0.003 +
+                                i
+                            ) * 5;
+
+
+                        red.x =
+                            groupX +
+                            Math.cos(angle)
+                            * radius;
+
+
+                        red.y =
+                            groupY +
+                            Math.sin(angle)
+                            * radius;
+
+
+                        red.scale =
+                            Math.max(
+                                0.2,
+                                1 -
+                                stateTime / 5000
+                            );
+
+
+                        red.opacity =
+                            Math.max(
+                                0,
+                                1 -
+                                stateTime / 5500
+                            );
+
+                    }
+                );
+
+
+                if (
+                    stateTime > 4300 ||
+                    groupX > W + 150
+                ) {
+
+                    state =
+                        "disappearing";
+
+                    stateTime = 0;
+
+                }
+
+            }
+
+
+            /* ------------------------------------------
+               DISAPPEARING
+            ------------------------------------------ */
+
+            else if (
+                state === "disappearing"
+            ) {
+
+                stateTime += dt;
+
+
+                const progress =
+                    Math.min(
+                        stateTime / 1300,
+                        1
+                    );
+
+
+                reds.forEach(
+                    red => {
+
+                        red.opacity =
+                            1 - progress;
+
+                        red.scale =
+                            1 - progress;
+
+                    }
+                );
+
+
+                if (progress >= 1) {
+
+                    reds.forEach(
+                        red => {
+
+                            red.opacity = 0;
+
+                            red.scale = 0;
+
+                        }
+                    );
+
+
+                    state =
+                        "alone";
+
+                    stateTime = 0;
+
+                }
+
+            }
+
+
+            /* ------------------------------------------
+               BLUE CIRCLE
+            ------------------------------------------ */
+
+            else if (
+                state === "blue-circle"
+            ) {
+
+                stateTime += dt;
+
+
+                const progress =
+                    Math.min(
+                        stateTime / 2400,
+                        1
+                    );
+
+
+                const eased =
+                    1 -
+                    Math.pow(
+                        1 - progress,
+                        3
+                    );
+
+
+                blueRing.forEach(
+                    point => {
+
+                        point.radius =
+                            point.targetRadius *
+                            eased;
+
+
+                        point.opacity =
+                            Math.min(
+                                1,
+                                progress * 1.5
+                            );
+
+
+                        point.angle +=
+                            dt * 0.00008;
+
+                    }
+                );
+
+
+                if (progress >= 1) {
+
+                    state =
+                        "blue-complete";
+
+                }
+
+            }
+
+        }
+
+
+        /* ==================================================
+           RENDER
+        ================================================== */
+
+        function render() {
+
+            ctx.clearRect(
+                0,
+                0,
+                W,
+                H
+            );
+
+
+            /* Blue */
+
+            if (
+                state !== "idle"
+            ) {
+
+                const pulse =
+                    Math.sin(
+                        blue.pulse
+                    ) * 0.5;
+
+
+                drawDot(
+                    blue.x,
+                    blue.y,
+                    blue.radius + pulse,
+                    "#6fa3ff",
+                    blue.opacity
+                );
+
+            }
+
+
+            /* Red */
+
+            reds.forEach(
+                red => {
+
+                    drawDot(
+                        red.x,
+                        red.y,
+                        red.size *
+                        red.scale,
+                        "#ff5267",
+                        red.opacity
+                    );
+
+                }
+            );
+
+
+            /* Blue ring */
+
+            if (
+                state === "blue-circle" ||
+                state === "blue-complete"
+            ) {
+
+                blueRing.forEach(
+                    point => {
+
+                        const x =
+                            W / 2 +
+                            Math.cos(point.angle)
+                            * point.radius;
+
+
+                        const y =
+                            H / 2 +
+                            Math.sin(point.angle)
+                            * point.radius;
+
+
+                        drawDot(
+                            x,
+                            y,
+                            point.size,
+                            "#6fa3ff",
+                            point.opacity
+                        );
+
+                    }
+                );
+
+            }
+
+        }
+
+
+        /* ==================================================
+           ANIMATION LOOP
+        ================================================== */
+
+        function animate(time) {
+
+            if (!lastTime) {
+
+                lastTime =
+                    time;
+
+            }
+
+
+            const dt =
+                Math.min(
+                    time - lastTime,
+                    40
+                );
+
+
+            lastTime =
+                time;
+
+
+            update(dt);
+
+            render();
+
+
+            requestAnimationFrame(
+                animate
+            );
+
+        }
+
+
+        requestAnimationFrame(
+            animate
+        );
+
+
+        /* ==================================================
+           STORY
+        ================================================== */
+
+        const story =
+            document.getElementById(
+                "story"
+            );
+
+
+        const storyText =
+            document.getElementById(
+                "storyText"
+            );
+
+
+        const storyData = [
+
+            {
+                text:
+                    "Kalian lagi ngapain?",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    2200
+            },
+
+            {
+                text:
+                    "Aku juga kepingin ikut.",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    2500
+            },
+
+            {
+                text:
+                    "Tunggu...",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    1700
+            },
+
+            {
+                text:
+                    "Aku ikut.",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    2200
+            },
+
+            {
+                text:
+                    "Eh.",
+
+                speaker:
+                    "red",
+
+                duration:
+                    1500,
+
+                action:
+                    () => {
+
+                        state =
+                            "breaking";
+
+                        stateTime =
+                            0;
+
+                    }
+
+            },
+
+            {
+                text:
+                    "Lu tuh gak diajak.",
+
+                speaker:
+                    "red",
+
+                duration:
+                    2300
+            },
+
+            {
+                text:
+                    "Oh...",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    1700
+            },
+
+            {
+                text:
+                    "Yaudah.",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    1700
+            },
+
+            {
+                text:
+                    "Padahal aku cuma mau ikut.",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    2600
+            },
+
+            {
+                text:
+                    "Jadi...",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    1800,
+
+                action:
+                    () => {
+
+                        state =
+                            "blue-circle";
+
+                        stateTime =
+                            0;
+
+
+                        blueRing.forEach(
+                            point => {
+
+                                point.radius =
+                                    0;
+
+                                point.opacity =
+                                    0;
+
+                            }
+                        );
+
+                    }
+
+            },
+
+            {
+                text:
+                    "Sekarang aku sendiri?",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    2200
+            },
+
+            {
+                text:
+                    "Yaudah.",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    2000
+            },
+
+            {
+                text:
+                    "Mungkin gak harus ikut circle orang lain.",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    3000
+            },
+
+            {
+                text:
+                    "Bikin sendiri aja.",
+
+                speaker:
+                    "blue",
+
+                duration:
+                    2800
+            }
+
+        ];
+
+
+        /* ==================================================
+           SHOW STORY TEXT
+        ================================================== */
+
+        function showStoryText(item) {
+
+            storyText.className = "";
+
+
+            storyText.textContent =
+                item.text;
+
+
+            storyText.classList.add(
+                item.speaker
+            );
+
+
+            requestAnimationFrame(
+                () => {
+
+                    storyText.classList.add(
+                        "show"
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           HIDE STORY TEXT
+        ================================================== */
+
+        function hideStoryText() {
+
+            storyText.classList.remove(
+                "show"
+            );
+
+        }
+
+
+        /* ==================================================
+           WAIT
+        ================================================== */
+
+        function wait(ms) {
+
+            return new Promise(
+                resolve => {
+
+                    setTimeout(
+                        resolve,
+                        ms
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           PLAY STORY
+        ================================================== */
+
+        async function playStory() {
+
+            for (
+                const item of storyData
+            ) {
+
+                showStoryText(
+                    item
+                );
+
+
+                if (item.action) {
+
+                    await wait(300);
+
+                    item.action();
+
+                }
+
+
+                await wait(
+                    item.duration
+                );
+
+
+                hideStoryText();
+
+
+                await wait(650);
+
+            }
+
+
+            await wait(1000);
+
+
+            story.classList.remove(
+                "show"
+            );
+
+
+            await wait(700);
+
+
+            document
+                .getElementById("ending")
+                .classList.add("show");
+
+
+            await wait(400);
+
+
+            document
+                .getElementById("endingTitle")
+                .classList.add("show");
+
+
+            await wait(1800);
+
+
+            document
+                .getElementById("restart")
+                .classList.add("show");
+
+        }
+
+
+        /* ==================================================
+           START BUTTON
+        ================================================== */
+
+        const startButton =
+            document.getElementById(
+                "startButton"
+            );
+
+
+        console.log(
+            "CIRCLE loaded successfully"
+        );
+
+
+        console.log(
+            "Start button:",
+            startButton
+        );
+
+
+        startButton.addEventListener(
+            "click",
+            async () => {
+
+                console.log(
+                    "CIRCLE started"
+                );
+
+
+                document
+                    .getElementById("intro")
+                    .classList.add("hidden");
+
+
+                story.classList.add(
+                    "show"
+                );
+
+
+                resetScene();
+
+
+                await wait(800);
+
+
+                playStory();
+
+            }
+        );
+
+
+        /* ==================================================
+           RESTART
+        ================================================== */
+
+        document
+            .getElementById("restart")
+            .addEventListener(
+                "click",
+                () => {
+
+                    location.reload();
+
+                }
+            );
+
+    </script>
+
+</body>
+</html>
